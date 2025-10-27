@@ -1,0 +1,37 @@
+services:
+  
+  # 1. MongoDB Database Service
+  mongo:
+    image: mongo:latest
+    container_name: task-manager-db
+    restart: always
+    ports:
+      - "27017:27017" # Local machine se connect karne ke liye (optional)
+    volumes:
+      - mongo-data:/data/db # Database data ko save rakhne ke liye
+
+  # 2. Backend API Service
+  backend:
+    build: ./backend # build from backend folder
+    container_name: task-manager-api
+    restart: always
+    env_file: ./backend/.env # .env file se secrets lega
+    ports:
+      - "5000:5000" # Expose backend for local testing (host:container)
+    depends_on:
+      - mongo # Pehle database start hoga, fir backend
+    # Hum port 5000 ko host par expose nahin kar rahe hain,
+    # kyunki Nginx (frontend) usse seedha connect karega.
+
+  # 3. Frontend Client Service
+  frontend:
+    build: ./client # Is folder mein Dockerfile dhoondega
+    container_name: task-manager-client
+    restart: always
+    ports:
+      - "8080:80" # Aapki app http://localhost:8080 par chalegi
+    depends_on:
+      - backend # Pehle backend start hoga, fir frontend
+
+volumes:
+  mongo-data: # Database data ko store karne ke liye volume
